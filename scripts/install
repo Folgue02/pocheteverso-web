@@ -75,4 +75,9 @@ if (not -d $assets_path) {
 
 copy_dir_contents $static_path, $TARGET_STATIC;
 copy_dir_contents $assets_path, $TARGET_ASSETS;
+
+if (not -d dirname($TARGET_BIN)) {
+	system("mkdir \"" . dirname($TARGET_BIN) . "\" -p") == 0 or die "Couldn't create " . dirname($TARGET_BIN);
+}
+
 copy $bin_path, $TARGET_BIN;
