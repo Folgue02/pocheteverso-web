@@ -1,0 +1,78 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use feature 'say';
+
+use File::Copy;
+use Getopt::Long;
+use File::Basename;
+use File::Spec;
+
+# Target paths
+my $TARGET_STATIC = "/var/www/pocheteverso-static";
+my $TARGET_ASSETS = "/var/www/pocheteverso-assets";
+my $TARGET_BIN = "/opt/pocheteverso/pvw";
+
+# Flags
+my $bin_path = "./pvw";
+my $static_path = "./static";
+my $assets_path = "./assets";
+my $help = 0;
+GetOptions(
+	"bin=s" => \$bin_path,
+	"static=s" => \$static_path,
+	"assets=s" => \$assets_path,
+	"help" => \$help
+) or die "Invalid arguments";
+
+if ($help) {
+	say 'Usage: install [-h/--help] -s/--static $path -a/--assets $path -b/--bin $path';
+	say "\t-s/--static\fPath where the static files are located in.";
+	say "\t-a/--assets\fPath where the asset files are located in.";
+	say "\t-b/--bin\fPath where the server's binary file is located in.";
+	say "\nThis script copies the server's static files, asset files and its binary to certain locations to form an installation.";
+	exit 0;
+}
+
+if (scalar(`whoami`) ne "root\n") {
+	die "This script must be run as root.";
+}
+
+# Copies the contents of $src into $dst.
+# If $dst's parent path doesn't exist, it's created
+sub copy_dir_contents($$) {
+	my ($src, $dst) = @_;
+
+	if (! -d $dst) {
+		say "Destination directory created (" . $dst . ")";
+		system("mkdir -p $dst") == 0 or die "Couldn't create the parent directory of $dst";
+	}
+
+	opendir my $srch, $src or die "Couldn't open directory: $src";
+
+	while (readdir $srch) {
+		next if $_ eq "." or $_ eq "..";
+		my $src_file = File::Spec->catfile($src, $_);
+		my $dst_file = File::Spec->catfile($dst, $_);
+		say "Copying $src_file -> $dst_file...";
+		system("cp \"$src_file\" \"$dst_file\" -r") == 0 or die "Couldn't copy contents: $?";
+	}
+
+	closedir $srch;
+}
+
+if (not -f $bin_path) {
+	die "The specified file to the server's binary doesn't exist.";
+}
+
+if (not -d $static_path) {
+	die "The specified static files directory doesn't exist.";
+}
+
+if (not -d $assets_path) {
+	die "The specified asset files directory doesn't exist.";
+}
+
+copy_dir_contents $static_path, $TARGET_STATIC;
+copy_dir_contents $assets_path, $TARGET_ASSETS;
+copy $bin_path, $TARGET_BIN;
