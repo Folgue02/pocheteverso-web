@@ -1,3 +1,5 @@
 bin/
 assets/
 go.sum
+.idea/
+static/backups/
