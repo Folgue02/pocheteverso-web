@@ -77,7 +77,7 @@ if (! -d $assets_path) {
 	die "The specified asset files directory doesn't exist.";
 }
 
-if (! -d $dynres) {
+if (! -d $dynres_path) {
 	die "The specified dynamic resources directory doesn't exist.";
 }
 
