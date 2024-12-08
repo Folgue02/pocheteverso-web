@@ -1,3 +1,5 @@
+TARGET_BIN=bin/pvw
+
 init:
 	if [ ! -d ./bin ]; then \
 		mkdir bin; \
@@ -7,10 +9,10 @@ run:
 	go run .
 
 build:
-	go build -o bin/pocheteverso . 
+	go build -o bin/pvw . 
 
-dev:
-	go run . -port 8080 -static ./static -assets ./assets
+dev: build
+	$(TARGET_BIN) -port 8080 -static ./static -assets ./assets -dynres ./dynres
 
 build-scripts: init
 	go build -o bin/pv-install scripts/install.go

@@ -1,0 +1,66 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use feature 'say';
+
+use File::Copy;
+use Getopt::Long;
+use File::Basename;
+use File::Spec;
+use File::Spec::Functions 'catfile';
+
+my $world_src = "";
+my $world_dst = "";
+my $mc_service = "";
+my $delay = 20;
+my $help = 0;
+
+GetOptions(
+	"src=s" => \$world_src,
+	"dst=s" => \$world_dst,
+	"help"  => \$help,
+	"delay" => \$delay,
+	"service=s", => \$mc_service
+) or die "Invalid arguments";
+
+
+if ($help) {
+	say 'Usage: backup-world [-h/--help] -src $path -dst $path -service-name $name -delay $duration';
+	say "\t-src\fPath where the world is stored..";
+	say "\t-d/-dst\fPath in where to store the world zip.";
+	say "\t-service-name\fName of the minecraft service.";
+	say "\t-delay\fDelay between stopping the server and starting the backup. [default: 20]";
+	say "\nThis script stops the minecraft service and backs up the world to the given destination, then the server is restarted.";
+	exit 0;
+}
+
+sub stop_service($) {
+	my $srv_name = shift;
+	system("systemctl stop $srv_name") == 0 or die "Couldn't stop the service.";
+}
+
+sub start_service($) {
+	my $srv_name = shift;
+	system("systemctl start $srv_name") == 0 or die "Couldn't start the service.";
+}
+
+sub backup_world($$) {
+	my ($src, $dst) = @_;
+	my ($c_year, $c_month, $c_day, $c_hour, $c_minute, $c_second) = localtime;
+	my $backup_path = catfile($dst, basename($src . "$c_year-$c_month-${c_day}_${c_hour}_${c_second}.zip"));
+
+	die "The backup destination is not a directory or doesn't exist." if (! -d $dst);
+	say "Creating world backup: $src -> $dst...";
+	system "zip -r \"$backup_path\" \"$src\"" == 0 or die "Couldn't copy $src -> $dst";
+}
+
+say "Stopping service....";
+stop_service $mc_service;
+
+sleep 5;
+
+say "Backing up world...";
+backup_world $world_src, $world_dst;
+
+say "Starting service...";
+start_service $mc_service;

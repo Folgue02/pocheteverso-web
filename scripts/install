@@ -12,16 +12,19 @@ use File::Spec;
 my $TARGET_STATIC = "/var/www/pocheteverso-static";
 my $TARGET_ASSETS = "/var/www/pocheteverso-assets";
 my $TARGET_BIN = "/opt/pocheteverso/pvw";
+my $TARGET_DYNRES = "/opt/pocheteverso/dynres";
 
 # Flags
-my $bin_path = "./pvw";
+my $bin_path = "./bin/pvw";
 my $static_path = "./static";
 my $assets_path = "./assets";
+my $dynres_path = "./dynres";
 my $help = 0;
 GetOptions(
 	"bin=s" => \$bin_path,
 	"static=s" => \$static_path,
 	"assets=s" => \$assets_path,
+	"dynres=s" => \$dynres_path,
 	"help" => \$help
 ) or die "Invalid arguments";
 
@@ -29,6 +32,7 @@ if ($help) {
 	say 'Usage: install [-h/--help] -s/--static $path -a/--assets $path -b/--bin $path';
 	say "\t-s/--static\fPath where the static files are located in.";
 	say "\t-a/--assets\fPath where the asset files are located in.";
+	say "\t-d/--dynres\fPath where the dynamic resources are located in.";
 	say "\t-b/--bin\fPath where the server's binary file is located in.";
 	say "\nThis script copies the server's static files, asset files and its binary to certain locations to form an installation.";
 	exit 0;
@@ -61,20 +65,25 @@ sub copy_dir_contents($$) {
 	closedir $srch;
 }
 
-if (not -f $bin_path) {
+if (! -f $bin_path) {
 	die "The specified file to the server's binary doesn't exist.";
 }
 
-if (not -d $static_path) {
+if (! -d $static_path) {
 	die "The specified static files directory doesn't exist.";
 }
 
-if (not -d $assets_path) {
+if (! -d $assets_path) {
 	die "The specified asset files directory doesn't exist.";
+}
+
+if (! -d $dynres) {
+	die "The specified dynamic resources directory doesn't exist.";
 }
 
 copy_dir_contents $static_path, $TARGET_STATIC;
 copy_dir_contents $assets_path, $TARGET_ASSETS;
+copy_dir_contents $dynres_path, $TARGET_DYNRES;
 
 if (not -d dirname($TARGET_BIN)) {
 	system("mkdir \"" . dirname($TARGET_BIN) . "\" -p") == 0 or die "Couldn't create " . dirname($TARGET_BIN);

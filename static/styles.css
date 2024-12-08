@@ -8,6 +8,19 @@ body {
 	color: var(--foreground-color) !important;
 }
 
-div.navbar {
-	background-color: darkred;
+table {
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+}
+
+td, th {
+	border: 1px solid var(--foreground-color);
+	text-align: left;
+	padding-right: 15px;
+	padding: 8px;
+}
+
+tr:nth-child(even) {
+	color: var(--background-color);
+	background-color: var(--foreground-color);
 }
